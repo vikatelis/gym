@@ -1,4 +1,9 @@
+print(" ")
+print(" IN HERE ")
 from gym.envs.registration import registry, register, make, spec
+
+
+print("RUNNING THIS")
 
 # Algorithmic
 # ----------------------------------------
@@ -88,6 +93,15 @@ register(
     id='Acrobot-v1',
     entry_point='gym.envs.classic_control:AcrobotEnv',
     max_episode_steps=500,
+)
+
+# Custom
+# ----------------------------------------
+register(
+    id='Rosi-v0',
+    entry_point='gym.envs.optimization:RosenbrockEnv2',
+    max_episode_steps=10,
+    reward_threshold=10,
 )
 
 # Box2d
@@ -530,4 +544,3 @@ register(
     entry_point='gym.envs.unittest:MemorizeDigits',
     reward_threshold=20,
     )
-

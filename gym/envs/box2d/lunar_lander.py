@@ -6,7 +6,7 @@ from Box2D.b2 import (edgeShape, circleShape, fixtureDef, polygonShape, revolute
 
 import gym
 from gym import spaces
-from gym.utils import seeding, EzPickle
+from gym.utils import seeding
 
 # Rocket trajectory optimization is a classic topic in Optimal Control.
 #
@@ -28,7 +28,7 @@ from gym.utils import seeding, EzPickle
 #
 # To play yourself, run:
 #
-# python examples/agents/keyboard_agent.py LunarLander-v2
+# python examples/agents/keyboard_agent.py LunarLander-v0
 #
 # Created by Oleg Klimov. Licensed on the same terms as the rest of OpenAI Gym.
 
@@ -70,7 +70,7 @@ class ContactDetector(contactListener):
             if self.env.legs[i] in [contact.fixtureA.body, contact.fixtureB.body]:
                 self.env.legs[i].ground_contact = False
 
-class LunarLander(gym.Env, EzPickle):
+class LunarLander(gym.Env):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second' : FPS
@@ -79,7 +79,6 @@ class LunarLander(gym.Env, EzPickle):
     continuous = False
 
     def __init__(self):
-        EzPickle.__init__(self)
         self.seed()
         self.viewer = None
 
@@ -90,14 +89,14 @@ class LunarLander(gym.Env, EzPickle):
 
         self.prev_reward = None
 
-        # useful range is -1 .. +1, but spikes can be higher
-        self.observation_space = spaces.Box(-np.inf, np.inf, shape=(8,), dtype=np.float32)
+        high = np.array([np.inf]*8)  # useful range is -1 .. +1, but spikes can be higher
+        self.observation_space = spaces.Box(-high, high)
 
         if self.continuous:
             # Action is two floats [main engine, left-right engines].
             # Main engine: -1..0 off, 0..+1 throttle from 50% to 100% power. Engine can't work with less than 50% power.
             # Left-right:  -1.0..-0.5 fire left engine, +0.5..+1.0 fire right engine, -0.5..0.5 off
-            self.action_space = spaces.Box(-1, +1, (2,), dtype=np.float32)
+            self.action_space = spaces.Box(-1, +1, (2,))
         else:
             # Nop, fire left engine, main engine, right engine
             self.action_space = spaces.Discrete(4)
@@ -236,10 +235,7 @@ class LunarLander(gym.Env, EzPickle):
             self.world.DestroyBody(self.particles.pop(0))
 
     def step(self, action):
-        if self.continuous:
-            action = np.clip(action, -1, +1).astype(np.float32)
-        else:
-            assert self.action_space.contains(action), "%r (%s) invalid " % (action, type(action))
+        assert self.action_space.contains(action), "%r (%s) invalid " % (action,type(action))
 
         # Engines
         tip  = (math.sin(self.lander.angle), math.cos(self.lander.angle))
@@ -284,7 +280,7 @@ class LunarLander(gym.Env, EzPickle):
         vel = self.lander.linearVelocity
         state = [
             (pos.x - VIEWPORT_W/SCALE/2) / (VIEWPORT_W/SCALE/2),
-            (pos.y - (self.helipad_y+LEG_DOWN/SCALE)) / (VIEWPORT_H/SCALE/2),
+            (pos.y - (self.helipad_y+LEG_DOWN/SCALE)) / (VIEWPORT_W/SCALE/2),
             vel.x*(VIEWPORT_W/SCALE/2)/FPS,
             vel.y*(VIEWPORT_H/SCALE/2)/FPS,
             self.lander.angle,
@@ -314,7 +310,7 @@ class LunarLander(gym.Env, EzPickle):
         if not self.lander.awake:
             done   = True
             reward = +100
-        return np.array(state, dtype=np.float32), reward, done, {}
+        return np.array(state), reward, done, {}
 
     def render(self, mode='human'):
         from gym.envs.classic_control import rendering
@@ -392,29 +388,19 @@ def heuristic(env, s):
         elif angle_todo > +0.05: a = 1
     return a
 
-def demo_heuristic_lander(env, seed=None, render=False):
-    env.seed(seed)
+if __name__=="__main__":
+    #env = LunarLander()
+    env = LunarLanderContinuous()
+    s = env.reset()
     total_reward = 0
     steps = 0
-    s = env.reset()
     while True:
         a = heuristic(env, s)
         s, r, done, info = env.step(a)
+        env.render()
         total_reward += r
-
-        if render:
-            still_open = env.render()
-            if still_open == False: break
-
         if steps % 20 == 0 or done:
-            print("observations:", " ".join(["{:+0.2f}".format(x) for x in s]))
+            print(["{:+0.2f}".format(x) for x in s])
             print("step {} total_reward {:+0.2f}".format(steps, total_reward))
         steps += 1
         if done: break
-    return total_reward
-
-
-if __name__ == '__main__':
-    demo_heuristic_lander(LunarLander(), render=True)
-    
-    

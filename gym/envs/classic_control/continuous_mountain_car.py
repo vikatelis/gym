@@ -139,6 +139,4 @@ class Continuous_MountainCarEnv(gym.Env):
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
     def close(self):
-        if self.viewer:
-            self.viewer.close()
-            self.viewer = None
+        if self.viewer: self.viewer.close()

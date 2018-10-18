@@ -16,7 +16,7 @@ def set_level(level):
     MIN_LEVEL = level
 
 def debug(msg, *args):
-    if MIN_LEVEL <= DEBUG:
+    if MIN_LEVEL <= INFO:
         print('%s: %s'%('DEBUG', msg % args))
 
 def info(msg, *args):

@@ -30,6 +30,3 @@ class Tuple(gym.Space):
 
     def from_jsonable(self, sample_n):
         return [sample for sample in zip(*[space.from_jsonable(sample_n[i]) for i, space in enumerate(self.spaces)])]
-
-    def __eq__(self, other):
-        return self.spaces == other.spaces
