@@ -11,10 +11,10 @@ class RosenbrockEnv2(gym.Env):
     def __init__(self):
         self.a = 1.0
         self.b = 100.0
-        #self.min_action = np.array([-5, -5])
-        #self.max_action = np.array([5, 5])
-        self.min_action = -5.0
-        self.max_action = 5.0
+        self.min_action = np.array([-5, -5])
+        self.max_action = np.array([5, 5])
+        #self.min_action = -5.0
+        #self.max_action = 5.0
         self.optimum_position = np.array([self.a,self.a**2]) # was 0.5 in gym, 0.45 in Arnaud de Broissia's version
         '''
         self.low_state = np.array([-1, -1, 1, 90, -20])
@@ -27,8 +27,8 @@ class RosenbrockEnv2(gym.Env):
         self.low_state = np.array([-20.0])
         self.high_state = np.array([20.0])
 
-        self.action_space = spaces.Box(low=self.min_action, high=self.max_action, shape=(1,))
-        #self.action_space = spaces.Box(low=self.min_action, high=self.max_action)
+        #self.action_space = spaces.Box(low=self.min_action, high=self.max_action, shape=(1,))
+        self.action_space = spaces.Box(low=self.min_action, high=self.max_action)
         self.observation_space = spaces.Box(low=self.low_state, high=self.high_state)
         self.num_envs = 3
         self.old = None
@@ -49,18 +49,15 @@ class RosenbrockEnv2(gym.Env):
         return(np.array([self.a,self.a**2]))
 
     def step(self, action):
-        #step = min(max(action[0], self.min_action), self.max_action)
-        #print(action)
-        self.count += 1
-        step = action[0]
+        #print("action ",str(action))
+        step = action
+        #step = action[0]
         # get gradient step
         loss = self.rosen_grad_step(step)
         #print(loss)
         #dist = np.linalg.norm(self.state[0:2]-self.optimum())
 
         #done = bool(dist<0.5)
-        reward = 0
-
         #reward
         reward = (self.prev_loss - loss)/self.prev_loss
 
@@ -87,17 +84,17 @@ class RosenbrockEnv2(gym.Env):
         #elif self.count > 10:
         #    done = True
         elif abs(loss) < 10**-1 and abs(self.prev_loss) < 10**-1:
-            print("")
-            print("Whoooooppppp")
-            reward = max(10* (reward),0)
-            print(reward)
+            #print("")
+            #print("Whoooooppppp")
+            reward = max(3* (reward + 0.1),0)
+            #print(reward)
             done = False
 
         elif abs(loss) < 10**-1:
 
             print("   ")
             print("Made it ")
-            reward = 5* reward
+            reward = 3* (reward + 0.1)
             done = False
         else:
             done = False
@@ -134,18 +131,18 @@ class RosenbrockEnv2(gym.Env):
         #self.state = np.array([0.4,0.3,2.4,96.0,3.0])
         self.state = np.array([self.np_random.uniform(low=-20, high=20)])
         self.count = 0
-        self.x = self.np_random.uniform(low=-1, high=1)
-        self.y = self.np_random.uniform(low=-1, high=1)
+        self.x = self.np_random.uniform(low=-5, high=5)
+        self.y = self.np_random.uniform(low=-5, high=5)
         rosi = self.rosen()
         #self.state[2] = 20 * rosi /(20+abs(rosi))
         # change assignment
         #
         #print("reset position is ", str(self.x), " and ",str(self.y), "and loss is ",str(self.rosen()))
         self.state[0] = 20 * rosi /(20+abs(rosi))
-        self.a = 1 #self.np_random.uniform(low=1, high=3)
+        self.a = 1 #self.np_random.uniform(low=1, high=10)
         self.b = 10 #self.np_random.uniform(low=10, high=20)
         self.prev_loss = 20 * rosi /(20+abs(rosi))
-        print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
+        #print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
         return np.array(self.state)
 
 
@@ -202,15 +199,17 @@ class RosenbrockEnv2(gym.Env):
         #print("true gradient ", str(dx), " ", str(dy))
         #print("step ",str(- beta/10*dx), " ",str(- beta/10*dy))
 
+        #print(beta)
 
 
-        self.x = self.x - beta/10*dx
-        self.y = self.y - beta/10*dy
+
+        self.x = self.x - beta[0]/10*dx
+        self.y = self.y - beta[1]/10*dy
 
         f_ = self.rosen()
         #self.state[2] = 20 * f_ /(20+abs(f_))
         self.state[0] = 20 * f_ /(20+abs(f_))
         #return f_
 
-        print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
+        #print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
         return 20 * self.rosen() /(20+abs(self.rosen()))

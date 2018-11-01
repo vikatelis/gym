@@ -100,7 +100,7 @@ register(
 register(
     id='Rosi-v0',
     entry_point='gym.envs.optimization:RosenbrockEnv2',
-    max_episode_steps=10,
+    max_episode_steps=100,
     reward_threshold=10,
 )
 
