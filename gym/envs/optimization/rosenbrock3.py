@@ -60,6 +60,8 @@ class RosenbrockEnv2(gym.Env):
         #done = bool(dist<0.5)
         #reward
         reward = (self.prev_loss - loss)/self.prev_loss
+        reward = reward * (2-self.count/100)
+        self.count = self.count + 1
 
         #reward = reward/100
         #reward = np.sign(reward) * min(abs(reward),100)
@@ -211,5 +213,5 @@ class RosenbrockEnv2(gym.Env):
         self.state[0] = 20 * f_ /(20+abs(f_))
         #return f_
 
-        #print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
+        print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
         return 20 * self.rosen() /(20+abs(self.rosen()))
