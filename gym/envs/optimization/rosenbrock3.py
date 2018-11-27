@@ -17,15 +17,15 @@ class RosenbrockEnv2(gym.Env):
         #self.max_action = 5.0
         self.optimum_position = np.array([self.a,self.a**2]) # was 0.5 in gym, 0.45 in Arnaud de Broissia's version
         '''
-        self.low_state = np.array([-1, -1, 1, 90, -20])
-        self.high_state = np.array([+1, +1, 3, 100, 20])
+        self.low_state = np.array([-1, -1, 1, 90, -30])
+        self.high_state = np.array([+1, +1, 3, 100, 30])
 
-        self.low_state = np.array([-30.0, -30.0, -20.0])
-        self.high_state = np.array([+30.0, +30.0, 20.0])
+        self.low_state = np.array([-30.0, -30.0, -30.0])
+        self.high_state = np.array([+30.0, +30.0, 30.0])
         '''
 
-        self.low_state = np.array([-20.0])
-        self.high_state = np.array([20.0])
+        self.low_state = np.array([1,1,-30.0])
+        self.high_state = np.array([4,20,30.0])
 
         #self.action_space = spaces.Box(low=self.min_action, high=self.max_action, shape=(1,))
         self.action_space = spaces.Box(low=self.min_action, high=self.max_action)
@@ -81,7 +81,7 @@ class RosenbrockEnv2(gym.Env):
         if abs(self.x)>30.0 or abs(self.y)>30.0:
             #
             #print("OUT")
-            reward = min(2*reward,-20)
+            reward = min(2*reward,-30)
             done = True
         #elif self.count > 10:
         #    done = True
@@ -93,69 +93,41 @@ class RosenbrockEnv2(gym.Env):
             done = False
 
         elif abs(loss) < 10**-1:
-
-            print("   ")
-            print("Made it ")
             reward = 3* (reward + 0.1)
             done = False
         else:
             done = False
-        '''
-        elif reward <= 0 and abs(loss) > 10 :
-            reward = min(reward,-1)
-            done = False
-        elif loss < 10:
-            #reward += 0.5
-            #print("In loss < 10")
-            reward = 1.5*reward
-            done = False
-        '''
-
-        '''
-        elif loss < 10 and loss < self.min_loss:
-            self.min_loss = loss
-            reward = 10
-            done = False
-        '''
-
-        '''
-        elif dist<1:
-            reward = 1-dist
-        else:
-            reward -= 1
-        #print(done)
-        '''
         self.prev_loss = loss
-        return self.state, reward, done, {}
+        return self.state, reward, done, {"a": self.a, "b": self.b}
 
     def reset(self):
-        #self.state = np.array([self.np_random.uniform(low=-1, high=1), self.np_random.uniform(low=-1, high=1),self.np_random.uniform(low=-20, high=20)])
+        #self.state = np.array([self.np_random.uniform(low=-1, high=1), self.np_random.uniform(low=-1, high=1),self.np_random.uniform(low=-30, high=30)])
         #self.state = np.array([0.4,0.3,2.4,96.0,3.0])
-        self.state = np.array([self.np_random.uniform(low=-20, high=20)])
+        self.a = self.np_random.uniform(low=0, high=3)
+        self.b = self.np_random.uniform(low=10, high=30)
+        self.state = np.array([self.a, self.b, self.np_random.uniform(low=-30, high=30)])
         self.count = 0
         self.x = self.np_random.uniform(low=-5, high=5)
         self.y = self.np_random.uniform(low=-5, high=5)
         rosi = self.rosen()
-        #self.state[2] = 20 * rosi /(20+abs(rosi))
+        #self.state[2] = 30 * rosi /(30+abs(rosi))
         # change assignment
         #
         #print("reset position is ", str(self.x), " and ",str(self.y), "and loss is ",str(self.rosen()))
-        self.state[0] = 20 * rosi /(20+abs(rosi))
-        self.a = 1 #self.np_random.uniform(low=1, high=10)
-        self.b = 10 #self.np_random.uniform(low=10, high=20)
-        self.prev_loss = 20 * rosi /(20+abs(rosi))
-        #print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
+        self.state[2] = 30 * rosi /(30+abs(rosi))
+        self.prev_loss = 30 * rosi /(30+abs(rosi))
+        print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(30 * self.rosen() /(30+abs(self.rosen()))))
         return np.array(self.state)
 
 
     def set_state(self, state):
         self.state = state
         rosi = self.rosen()
-        self.prev_loss = self.min_loss = 20 * rosi /(20+abs(rosi))
-        #self.state[2] = 20 * self.rosen() /(20+abs(self.rosen()))
-        self.state[0] = 20 * self.rosen() /(20+abs(self.rosen()))
-        self.a = self.np_random.uniform(low=1, high=3)
-        self.b = self.np_random.uniform(low=90, high=100)
+        self.prev_loss = self.min_loss = 30 * rosi /(30+abs(rosi))
+        #self.state[2] = 30 * self.rosen() /(30+abs(self.rosen()))
+        self.state[2] = 30 * self.rosen() /(30+abs(self.rosen()))
+        #self.a = self.np_random.uniform(low=1, high=3)
+        #self.b = self.np_random.uniform(low=90, high=100)
         #self.state = np.array([-2.0, 2.0])
         return np.array(self.state)
 
@@ -205,13 +177,13 @@ class RosenbrockEnv2(gym.Env):
 
 
 
-        self.x = self.x - beta[0]/10*dx
-        self.y = self.y - beta[1]/10*dy
+        self.x = self.x + beta[0]/10 #*dx
+        self.y = self.y + beta[1]/10 #*dy
 
         f_ = self.rosen()
-        #self.state[2] = 20 * f_ /(20+abs(f_))
-        self.state[0] = 20 * f_ /(20+abs(f_))
+        #self.state[2] = 30 * f_ /(30+abs(f_))
+        self.state[2] = 30 * f_ /(30+abs(f_))
         #return f_
-
-        print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(20 * self.rosen() /(20+abs(self.rosen()))))
-        return 20 * self.rosen() /(20+abs(self.rosen()))
+        #print("self.a is and b is  ", str(self.a), str(self.b))
+        print("position is ", str(self.x), " and ", str(self.y), "and loss is ", str(self.rosen()), "and scaled loss is ", str(30 * self.rosen() /(30+abs(self.rosen()))))
+        return 30 * self.rosen() /(30+abs(self.rosen()))
