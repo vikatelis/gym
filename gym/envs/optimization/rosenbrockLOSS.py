@@ -80,7 +80,7 @@ class RosenbrockEnv2(gym.Env):
         reward = reward/2
         self.prev_loss = loss
         self.prev_unscaled = self.unscaled
-        return self.state, reward, done, {"x": self.x, "y": self.y, "z": self.rosen()}
+        return self.state, reward, done, {"x": self.x, "y": self.y}
 
     def reset(self):
         self.state = np.array([self.np_random.uniform(low=-30, high=30)])
