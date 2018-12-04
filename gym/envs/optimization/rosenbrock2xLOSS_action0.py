@@ -59,9 +59,11 @@ class RosenbrockEnv2(gym.Env):
         reward = (self.prev_unscaled - self.unscaled)/(self.prev_unscaled + 1.0e-5)
         #print(self.prev_unscaled - self.unscaled)
         #print((self.prev_unscaled - self.unscaled)/(self.prev_unscaled + 1.0e-5))
-        reward = reward * np.exp(self.count/100) * (4-min(loss,3))
 
-        reward2 = (self.prev_loss - loss)/(self.prev_loss + 1.0e-5)*self.count/100
+
+        #reward = (self.prev_loss - loss)/(self.prev_loss + 1.0e-5)
+        reward = reward * np.exp(self.count/100) * (4-min(loss,3))
+        #reward = reward * (4-min(loss,3))
         '''
         print(self.prev_loss)
         print(loss)
@@ -99,7 +101,7 @@ class RosenbrockEnv2(gym.Env):
         #print(reward2)
         #time.sleep(1)
 
-        reward = reward/2
+        reward = reward/4
         self.prev_prev_loss = self.prev_loss
         self.prev_loss = loss
         self.prev_unscaled = self.unscaled
@@ -109,8 +111,8 @@ class RosenbrockEnv2(gym.Env):
     def reset(self):
         self.state = np.array([self.np_random.uniform(low=-30, high=30),self.np_random.uniform(low=-30, high=30),self.np_random.uniform(low=-5, high=5),self.np_random.uniform(low=-5, high=5)])
         self.count = 0
-        self.x = self.np_random.uniform(low=-5, high=5)
-        self.y = self.np_random.uniform(low=-5, high=5)
+        self.x = self.np_random.uniform(low=-6, high=6)
+        self.y = self.np_random.uniform(low=-6, high=6)
         #rosi = self.rosen()
         self.a = self.np_random.uniform(low=0, high=3)
         self.b = self.np_random.uniform(low=4, high=30)
