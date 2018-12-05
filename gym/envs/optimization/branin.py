@@ -52,7 +52,7 @@ class Branin(gym.Env):
         self.prev_unscaled = self.unscaled
 
         # step 0.1
-        rosi = self.branin_step(np.array([0.1,0.1]))
+        self.branin_step(np.array([0.1,0.1]))
         f_ = self.branin()/10
         self.state[0] = np.sign(self.prev_unscaled - f_) * np.min([np.abs(self.prev_unscaled - f_),30])
         self.prev_loss = 30 * f_ /(30+abs(f_))
