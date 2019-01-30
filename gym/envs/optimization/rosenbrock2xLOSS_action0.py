@@ -52,7 +52,7 @@ class RosenbrockEnv2(gym.Env):
         # reward unscaled
         reward = (self.prev_unscaled - self.unscaled)/(self.prev_unscaled + 1.0e-5)
         # clip reward
-        reward = np.sign(reward) * min([np.abs(reward), 2])
+        reward = np.sign(reward) * min([np.abs(reward), 10])
         # scale reward: reward scaled by absolute value and more emphasize on latter rewards!
         reward = reward * np.exp(self.count/100) * (5-min(loss,4))
         self.count = self.count + 1
@@ -64,7 +64,7 @@ class RosenbrockEnv2(gym.Env):
         elif abs(loss) < 10**-1 and abs(self.prev_loss) < 10**-1:
             reward = max(2* (reward + 0.05),0)
             done = False
-        elif abs(loss) < 10**-1:
+        elif abs(loss) < 1: #10**-1:
             reward = 2* (reward + 0.05)
             done = False
         elif reward < 0:
@@ -93,20 +93,20 @@ class RosenbrockEnv2(gym.Env):
         # init state description
         # step 0
         self.rosen_grad_step(np.array([0,0]))
-        rosi = self.rosen() #/10
+        rosi = self.rosen() /10
         self.prev_loss = 30 * rosi /(30+abs(rosi))
         self.prev_unscaled = self.unscaled
 
         # step 0.1
         rosi = self.rosen_grad_step(np.array([0.1,0.1]))
-        f_ = self.rosen() #/10
+        f_ = self.rosen() /10
         self.state[0] = np.sign(self.prev_unscaled - f_) * np.min([np.abs(self.prev_unscaled - f_),30])
         self.prev_loss = 30 * rosi /(30+abs(rosi))
         self.prev_unscaled = self.unscaled
 
         # step - 0.1
         out = self.rosen_grad_step(np.array([-0.1,-0.1]))
-        f_ = self.rosen() #/10
+        f_ = self.rosen() /10
         self.state[0] = np.sign(self.prev_unscaled - f_) * np.min([np.abs(self.prev_unscaled - f_),30])
         self.prev_loss = out
         self.prev_unscaled = self.unscaled
@@ -123,9 +123,9 @@ class RosenbrockEnv2(gym.Env):
         self.b = state[1]
         self.x = state[2]
         self.y = state[3]
-        rosi = self.rosen() #/10
+        rosi = self.rosen() /10
         self.rosen_grad_step(np.array([0,0]))
-        rosi = self.rosen() #/10
+        rosi = self.rosen() /10
         self.state[0] = self.prev_loss - self.state[1]
         self.prev_loss = 30 * rosi /(30+abs(rosi))
         self.prev_unscaled = self.unscaled
@@ -149,11 +149,16 @@ class RosenbrockEnv2(gym.Env):
 
     def rosen_grad_step(self,beta):
         """Step in Environment"""
+
+        ## Calculate gradient
+        dx = -2*(self.a -self.x)-4*self.b*self.x*(self.y-self.x**2)
+        dy = 2*self.b*(self.y-self.x**2)
+
         self.x = self.x + beta[0]/50;
         self.y = self.y + beta[1]/50;
 
         ## state description update
-        f_ = self.rosen()# /10;
+        f_ = self.rosen() /10;
         self.unscaled = f_;
         self.state[1] = 30 * f_ /(30+abs(f_));
         self.state[0] = np.sign(self.prev_unscaled - f_) * np.min([np.abs(self.prev_unscaled - f_),30])

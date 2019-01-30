@@ -30,6 +30,9 @@ class Branin(gym.Env):
         self.action_space = spaces.Box(low=self.min_action, high=self.max_action)
         self.observation_space = spaces.Box(low=self.low_state, high=self.high_state)
 
+        self.state = np.ones(4)
+        self.prev_unscaled = 0
+
         # init thread
         self.seed()
         self.reset()
@@ -107,18 +110,49 @@ class Branin(gym.Env):
         #reward = reward/6
         self.prev_loss = loss
         self.prev_unscaled = self.unscaled
-        return self.state, reward, done, {}
+        return self.state, reward, done, {'x': self.x, 'y': self.y, 'z': 10*self.unscaled}
 
 
     def set_state(self, state):
         """Set external init state"""
+
+        # set initial position
+        self.x = state[2]
+        self.y = state[3]
+
+        # set initial position
+        f_ = self.branin()/10
+
+        # init state description
+        # step 0
+        self.branin_step(np.array([0,0]))
+        f_ = self.branin()/10
+        self.prev_loss = 30 * f_ /(30+abs(f_))
+        self.prev_unscaled = self.unscaled
+
+        # step 0.1
+        self.branin_step(np.array([0.1,0.1]))
+        f_ = self.branin()/10
+        self.state[0] = np.sign(self.prev_unscaled - f_) * np.min([np.abs(self.prev_unscaled - f_),30])
+        self.prev_loss = 30 * f_ /(30+abs(f_))
+        self.prev_unscaled = self.unscaled
+
+        # step -0.1
+        out = self.branin_step(np.array([-0.1,-0.1]))
+        f_ = self.branin()/10
+        self.state[0] = np.sign(self.prev_unscaled - f_) * np.min([np.abs(self.prev_unscaled - f_),30])
+        self.prev_loss = out
+        self.prev_unscaled = self.unscaled
+
+        #  reset counter
+        self.count = 0
         return np.array(self.state)
 
 
 
     def branin(self):
          """Branin Function"""
-         return self.a*(self.y - self.b*self.x**2 + self.c*self.x - self.r)**2 + self.s*(1-self.t)*cos(self.x) + self.s
+         return self.a*(self.y - self.b*self.x**2 + self.c*self.x - self.r)**2 + self.s*(1-self.t)*np.cos(self.x) + self.s
 
     def branin_step(self,beta):
         """Branin Step"""
@@ -136,6 +170,6 @@ class Branin(gym.Env):
         self.state[3] = beta[1]
         return self.state[1]
 
-    def scale_loss(self,loss):
+    def scaled_loss(self,loss):
         """Scale Loss to be in certain range"""
         return 30 * loss /(30+abs(loss))
