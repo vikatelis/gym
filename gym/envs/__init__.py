@@ -104,6 +104,21 @@ register(
     reward_threshold=10,
 )
 
+register(
+    id='Branin-v0',
+    entry_point='gym.envs.optimization:Branin',
+    max_episode_steps=100,
+    reward_threshold=10,
+)
+
+register(
+    id='GP-v0',
+    entry_point='gym.envs.optimization:GP',
+    max_episode_steps=100,
+    reward_threshold=10,
+)
+
+
 # Box2d
 # ----------------------------------------
 
