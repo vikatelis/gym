@@ -1,13 +1,6 @@
-print(" ")
-print(" IN HERE ")
 from gym.envs.registration import registry, register, make, spec
-
-
-print("RUNNING THIS")
-
 # Algorithmic
 # ----------------------------------------
-
 register(
     id='Copy-v0',
     entry_point='gym.envs.algorithmic:CopyEnv',
@@ -117,6 +110,35 @@ register(
     max_episode_steps=100,
     reward_threshold=10,
 )
+
+register(
+    id='SVM-v0',
+    entry_point='gym.envs.optimization:SVM',
+    max_episode_steps=20,
+    reward_threshold=10,
+)
+
+register(
+    id='SGD-v0',
+    entry_point='gym.envs.optimization:SGDonMNIST',
+    max_episode_steps=20,
+    reward_threshold=10,
+)
+
+register(
+    id='SGDonCIFAR-v0',
+    entry_point='gym.envs.optimization:SGDonCIFAR100',
+    max_episode_steps=20,
+    reward_threshold=10,
+)
+
+register(
+    id='LogReg-v0',
+    entry_point='gym.envs.optimization:LogisticRegression',
+    max_episode_steps=100,
+    reward_threshold=10,
+)
+
 
 
 # Box2d
