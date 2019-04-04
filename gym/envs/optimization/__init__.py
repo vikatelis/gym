@@ -9,4 +9,5 @@
 from gym.envs.optimization.SGD.SGD_on_MNIST import SGDonMNIST
 #from gym.envs.optimization.SGD_on_CIFAR10_VGG import SGDonCIFAR100
 from gym.envs.optimization.SGD.SGD_with_CNN import SGDwithCNN
+from gym.envs.optimization.SGD.SGD_with_sampled_CNN import SGDwithSampledCNN
 #from gym.envs.optimization.logistic_regression import LogisticRegression

@@ -119,18 +119,48 @@ register(
 )
 
 register(
+    id='SVMonGRID-v0',
+    entry_point='gym.envs.optimization:SVMonGrid',
+    max_episode_steps=100,
+    reward_threshold=10,
+)
+
+register(
+    id='LDAonGRID-v0',
+    entry_point='gym.envs.optimization:LDAonGrid',
+    max_episode_steps=100,
+    reward_threshold=10,
+)
+
+register(
     id='SGD-v0',
     entry_point='gym.envs.optimization:SGDonMNIST',
     max_episode_steps=20,
     reward_threshold=10,
 )
-
+'''
 register(
     id='SGDonCIFAR-v0',
     entry_point='gym.envs.optimization:SGDonCIFAR100',
     max_episode_steps=20,
     reward_threshold=10,
 )
+'''
+
+register(
+    id='SGDwithSampledCNN-v0',
+    entry_point='gym.envs.optimization:SGDwithSampledCNN',
+    max_episode_steps=100,
+    reward_threshold=10,
+)
+
+register(
+    id='SGDwithCNN-v0',
+    entry_point='gym.envs.optimization:SGDwithCNN',
+    max_episode_steps=20,
+    reward_threshold=10,
+)
+
 
 register(
     id='LogReg-v0',
