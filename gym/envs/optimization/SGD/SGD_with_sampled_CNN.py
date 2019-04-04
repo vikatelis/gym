@@ -7,13 +7,12 @@ from gym import spaces
 import gym.spaces
 from gym.utils import seeding
 from gym.utils.cnn_standard import cnn_model_fn
-from gym.utils.load_data import load_japanese_mnist
+from gym.utils.load_data import sample_dataset
 import numpy as np
 import tensorflow as tf
 from gym.utils import CNNSampler
-from gym.utils import DatasetSampler
 
-class SGDwithCNN(gym.Env):
+class SGDwithSampledCNN(gym.Env):
     def __init__(self):
         # define dimensionality
         self.ndim = 1
@@ -33,60 +32,9 @@ class SGDwithCNN(gym.Env):
         # init
         self.obs = self.observation_space.sample()
         self.state = self.hyper_space.sample()
-        self.prev_unscaled = 0
         self.prev_loss = 0
-        self.gp = 0
-        self.scale_function = 0
-        # load dataset
-        dataset = "JapaneseMNIST"
-        if dataset == "MNIST":
-            (X_train, y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
-            self.X_train = X_train.astype(float) / 255.
-            #self.Y_train = np.squeeze(y_train, axis=-1)
-            self.Y_train = y_train
-            # init placeholder
-            self.input_ = tf.placeholder('float32',shape = (None,28,28))
-            self.input_x = tf.reshape(self.input_, [-1, 28, 28, 1])
-            self.input_y = tf.placeholder('float32',shape = (None))
-        elif dataset == "CIFAR10":
-            (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
-            self.X_train = X_train.astype(float) / 255.
-            self.Y_train = np.squeeze(y_train, axis=-1)
-            self.input_ = tf.placeholder('float32',shape = (None,32,32,3))
-            self.input__  = tf.image.resize_images(self.input_ ,(28,28))
-            self.input_x = tf.reshape(self.input__, [-1, 28, 28, 3])
-            self.input_y = tf.placeholder('float32',shape = (None))
-        elif dataset == "FashionMNIST":
-            (X_train, y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
-            self.X_train = X_train.astype(float) / 255.
-            #self.Y_train = np.squeeze(y_train, axis=-1)
-            self.Y_train = y_train
-            # init placeholder
-            self.input_ = tf.placeholder('float32',shape = (None,28,28))
-            self.input_x = tf.reshape(self.input_, [-1, 28, 28, 1])
-            self.input_y = tf.placeholder('float32',shape = (None))
-        elif dataset == "JapaneseMNIST":
-            X_train, y_train = load_japanese_mnist()
-            self.X_train = X_train.astype(float) / 255.
-            #self.Y_train = np.squeeze(y_train, axis=-1)
-            self.Y_train = y_train
-            # init placeholder
-            self.input_ = tf.placeholder('float32',shape = (None,28,28))
-            self.input_x = tf.reshape(self.input_, [-1, 28, 28, 1])
-            self.input_y = tf.placeholder('float32',shape = (None))
-        self.learning_rate = tf.placeholder(tf.float32, shape=[])
-        # init network
-        with tf.variable_scope('test_scope'):
-            self.predictions = cnn_model_fn(self.input_x , mode=True)
-            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = tf.cast(self.input_y,tf.int32),logits = self.predictions))
-            self.train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
-
-        self.params = tf.trainable_variables(scope='test_scope')
-        self.sess = tf.Session()
-        self.sess.run(tf.initializers.variables(
-            self.params,
-            name='init'
-        ))
+        self.num_batches = 1900
+        self.batch_window = 130
         self.BATCH_SIZE = 32
         # init thread
         self.seed()
@@ -113,17 +61,13 @@ class SGDwithCNN(gym.Env):
         else:
             reward_5 = 0
         done = False
-        loss = self.gp_step(action)
+        loss = self.sgd_step(action)
         add_factor = self.lowest - loss
-        #reward = np.tanh(float((self.prev_loss - loss)/(self.prev_loss + 1.0e-10)))/10*(self.count/20)+add_factor/10
-        #reward_1 = np.tanh(float((self.prev_loss - loss)/max(np.abs(self.prev_loss + 1.0e-10), np.abs(loss + 1.0e-10))))
         reward_1 = np.tanh(float((self.prev_loss - loss)))
         reward_2 = np.tanh(np.linalg.norm(action))
         reward_3 = np.tanh(add_factor)
-        #reward = reward_1*(self.count/10) + np.sign(reward_2)*max(abs(reward_2),abs(1/10*reward_1))*(1-self.count/10) + reward_3
         reward = reward_1 + reward_3 + reward_5
         self.prev_loss = loss
-        self.prev_unscaled = loss
 
         return self.obs, reward, done, {'loss': loss}
 
@@ -144,32 +88,26 @@ class SGDwithCNN(gym.Env):
         lr = cs_state[0]
         print("lr is ", str(lr))
         batch_losses = []
-        batches = int(len(self.X_train) / self.BATCH_SIZE)
-        for j in range(batches):
+        for j in range(self.batch_window):
+            print("Batch no ",str(j))
             idx = np.random.randint(self.X_train.shape[0], size=self.BATCH_SIZE)
             X_b = self.X_train[idx]
             Y_b = self.Y_train[idx]
-
             # train the network, note the dictionary of inputs and labels
             _, batch_loss = self.sess.run([self.train_step, self.loss], feed_dict={self.input_: X_b, self.input_y: Y_b, self.learning_rate: lr})
             batch_losses.append(batch_loss)
         batch_loss = np.mean(batch_losses)
+        print(batch_loss)
         return batch_loss
 
     def forward_pass(self):
         """ Evaluate current loss"""
-        # train the network, note the dictionary of inputs and labels
         total_loss = self.sess.run([self.loss], feed_dict={self.input_: self.X_train, self.input_y: self.Y_train})
         return total_loss
 
     def get_observation(self, curr_loss, step):
         """ Transform state in invariant observation -- TO DO: invariance?? """
-        #print("ddd ",str(self.prev_unscaled - curr_loss))
-        test = self.prev_loss - curr_loss
-        #self.obs = np.append([self.prev_loss - curr_loss, curr_loss], step)
-        #self.obs = np.append([self.scale(self.prev_loss - curr_loss)], self.state)
         self.obs = np.append([self.scale(self.prev_loss - curr_loss)], step)
-        # reassign the prev_loss
         return
 
     def scale(self,f_):
@@ -183,17 +121,44 @@ class SGDwithCNN(gym.Env):
 
     def reset(self):
         """ Reset Gym Env """
+        print("reset")
+        tf.keras.backend.clear_session()
         a = self.seed()
-        # init position and shape
-        self.state = 0*self.hyper_space.sample()
-        cs_state = 0
-        self.lowest = self.forward_pass()
-        self.prev_loss = self.lowest
-        # init observation _ need steps to initialize
-        self.step(0.1*np.ones(self.ndim))
-        print(self.params)
+        # sample DataSet
+        self.X_train, self.Y_train, type = sample_dataset()
+        self.BATCH_SIZE = int(len(self.X_train)/self.num_batches)
+        print("Dataset ", str(type), "size", str(len(self.X_train)))
+        # preprocess DataSet
+        if type == "MNIST" or type == "JapaneseMNIST" or type == "FashionMNIST":
+            self.input_ = tf.placeholder('float32',shape = (None,28,28))
+            self.input_x = tf.reshape(self.input_, [-1, 28, 28, 1])
+            self.input_y = tf.placeholder('float32',shape = (None))
+        elif type == "CIFAR10":
+            self.input_ = tf.placeholder('float32',shape = (None,32,32,3))
+            self.input_resize  = tf.image.resize_images(self.input_ ,(28,28))
+            self.input_x = tf.reshape(self.input_resize, [-1, 28, 28, 3])
+            self.input_y = tf.placeholder('float32',shape = (None))
+
+        self.learning_rate = tf.placeholder(tf.float32, shape=[])
+            # init network
+        with tf.variable_scope('test_scope'):
+            self.predictions = cnn_model_fn(self.input_x , mode=True)
+            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = tf.cast(self.input_y,tf.int32),logits = self.predictions))
+            self.train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
+
+        self.params = tf.trainable_variables(scope='test_scope')
+        self.sess = tf.Session()
         self.sess.run(tf.initializers.variables(
             self.params,
             name='init'
         ))
+        # init first loss
+        print("doing forward step")
+        self.lowest = self.forward_pass()
+        print("loss is what ", str(self.lowest))
+        self.prev_loss = self.lowest
+        # init state
+        self.state = 0*self.hyper_space.sample()
+        self.obs = 0*self.observation_space.sample()
+        print("reset done")
         return self.obs
