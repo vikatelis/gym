@@ -122,7 +122,7 @@ class SGDwithSampledCNN(gym.Env):
     def reset(self):
         """ Reset Gym Env """
         print("reset")
-        tf.keras.backend.clear_session()
+        #tf.keras.backend.clear_session()
         a = self.seed()
         # sample DataSet
         self.X_train, self.Y_train, type = sample_dataset()
