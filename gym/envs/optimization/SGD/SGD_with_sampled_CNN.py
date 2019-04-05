@@ -102,7 +102,11 @@ class SGDwithSampledCNN(gym.Env):
 
     def forward_pass(self):
         """ Evaluate current loss"""
-        total_loss = self.sess.run([self.loss], feed_dict={self.input_: self.X_train, self.input_y: self.Y_train})
+        idx = np.random.randint(self.X_train.shape[0], size=self.batch_window*self.BATCH_SIZE)
+        X_b = self.X_train[idx]
+        Y_b = self.Y_train[idx]
+        # sample subset of size Batch_Size*batch_window
+        total_loss = self.sess.run([self.loss], feed_dict={self.input_: X_b , self.input_y: Y_b})
         return total_loss
 
     def get_observation(self, curr_loss, step):
@@ -125,7 +129,7 @@ class SGDwithSampledCNN(gym.Env):
         #tf.keras.backend.clear_session()
         a = self.seed()
         # sample DataSet
-        self.X_train, self.Y_train, type = sample_dataset()
+        self.X_train, self.Y_train, type = sample_dataset(type='SVHN')
         self.BATCH_SIZE = int(len(self.X_train)/self.num_batches)
         print("Dataset ", str(type), "size", str(len(self.X_train)))
         # preprocess DataSet
@@ -133,7 +137,7 @@ class SGDwithSampledCNN(gym.Env):
             self.input_ = tf.placeholder('float32',shape = (None,28,28))
             self.input_x = tf.reshape(self.input_, [-1, 28, 28, 1])
             self.input_y = tf.placeholder('float32',shape = (None))
-        elif type == "CIFAR10":
+        elif type == "CIFAR10" or type == "SVHN":
             self.input_ = tf.placeholder('float32',shape = (None,32,32,3))
             self.input_resize  = tf.image.resize_images(self.input_ ,(28,28))
             self.input_x = tf.reshape(self.input_resize, [-1, 28, 28, 3])

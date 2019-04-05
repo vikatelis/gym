@@ -20,16 +20,18 @@ def load_SVHN():
     X_train = data['X']
     y_train = data['y']
     y_train = np.squeeze(y_train, axis=-1)
+    y_train = y_train-1
     X_train = X_train.reshape(X_train.shape[-1],X_train.shape[0],X_train.shape[1],X_train.shape[2])
     return X_train, y_train
 
 
-def sample_dataset():
-    datasets = ['MNIST', 'FashionMNIST' , 'JapaneseMNIST', 'CIFAR10']
-    num_datasets = len(datasets)
-    # sample
-    ind = randint(0, num_datasets-1)
-    type = datasets[ind]
+def sample_dataset(type=None):
+    if type == None:
+        datasets = ['MNIST', 'FashionMNIST' , 'JapaneseMNIST', 'CIFAR10', 'SVHN']
+        num_datasets = len(datasets)
+        # sample
+        ind = randint(0, num_datasets-1)
+        type = datasets[ind]
     if type == 'MNIST':
         (X_train, Y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
         X_train = X_train.astype(float) / 255.
@@ -42,6 +44,9 @@ def sample_dataset():
         Y_train = np.squeeze(Y_train, axis=-1)
     elif type == 'JapaneseMNIST':
         X_train, Y_train = load_japanese_mnist()
+        X_train = X_train.astype(float) / 255.
+    elif type == 'SVHN':
+        X_train, Y_train = load_SVHN()
         X_train = X_train.astype(float) / 255.
     return X_train, Y_train, type
 
@@ -88,4 +93,4 @@ if __name__ == "__main__":
     X_train, y_train = load_SVHN()
 
     print(X_train.shape)
-    print(y_train.shape)
+    print(min(y_train))
