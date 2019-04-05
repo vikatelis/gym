@@ -2,9 +2,10 @@ import math
 import random
 from random import randint
 
-import gym
-from gym import spaces
+
+
 import gym.spaces
+from gym import spaces
 from gym.utils import seeding
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -24,10 +25,10 @@ class GP(gym.Env):
         self.kernels = [1.0 * RBF(length_scale=4.0, length_scale_bounds=(1e-1, 10.0)),
                         1.0 * RBF(length_scale=1.5, length_scale_bounds=(1e-1, 10.0)),
                         1.0 * RationalQuadratic(length_scale=2.0, alpha=2),
-                        1.0 * RationalQuadratic(length_scale=1.3, alpha=2),
+                        1.0 * RationalQuadratic(length_scale=4.3, alpha=2),
                         0.3 * (DotProduct(sigma_0=0, sigma_0_bounds=(0.1, 1.0))) * RationalQuadratic(length_scale=2.0, alpha=2),
                         0.3 * (DotProduct(sigma_0=0, sigma_0_bounds=(0.1, 1.0))) * RBF(length_scale=4.0, length_scale_bounds=(1e-1, 10.0)),
-                        1.0 * Matern(length_scale=2.0, length_scale_bounds=(1e-1, 10.0), nu=1)]
+                        1.0 * Matern(length_scale=3.0, length_scale_bounds=(1e-1, 10.0), nu=4)]
         # range action
         self.min_action = -10*np.ones(self.ndim)
         self.max_action = 10*np.ones(self.ndim)
@@ -62,13 +63,14 @@ class GP(gym.Env):
             self.gp = GaussianProcessRegressor(kernel=kernel)
             # calculate current prior and interpolate between points
             z = self.gp.sample_y(self.grid, n_samples=30, random_state=None)
-            for i in range(z.shape[-1]):
-                loss_func = interpolate.Rbf(*[self.grid[:,x] for x in range(self.ndim)], z[:,i])
+            for ii in range(z.shape[-1]):
+                loss_func = interpolate.Rbf(*[self.grid[:,x] for x in range(self.ndim)], z[:,ii])
                 self.function_list.append(loss_func)
                 # plot
                 # if self.ndim == 1:
                 #     import matplotlib.pyplot as plt
                 #     plt.plot(self.grid,loss_func(self.grid))
+                #     plt.title("kernel: "+ str(i))
                 #     plt.show()
                 # if self.ndim == 2:
                 #     import matplotlib.pyplot as plt
@@ -186,3 +188,6 @@ class GP(gym.Env):
         self.count = 0
         return self.obs
         #return np.array(self.state)
+
+if __name__ == '__main__':
+    gpee = GP()

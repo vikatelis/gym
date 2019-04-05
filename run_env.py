@@ -10,7 +10,7 @@ import gym
 # init training env
 print("init env")
 #env_type, env_id = get_env_type("LogReg-v0")
-env_type, env_id = "optimization", "SGDwithSampledCNN-v0"
+env_type, env_id = "optimization", "GP-v0"
 env = gym.make(env_id)
 print(env)
 env.num_envs = 1
