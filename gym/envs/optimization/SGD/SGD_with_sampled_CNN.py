@@ -34,7 +34,7 @@ class SGDwithSampledCNN(gym.Env):
         self.state = self.hyper_space.sample()
         self.prev_loss = 0
         self.num_batches = 1900
-        self.batch_window = 130
+        self.batch_window = 4
         self.BATCH_SIZE = 32
         self.CNNPrototypes = CNNPrototypes.CNNPrototypes()
         # init thread
