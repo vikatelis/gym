@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 from random import randint
 import tensorflow as tf
+import scipy.io as sio
 
 def load_japanese_mnist():
     folder_path = '/Users/romc/Documents/RNN_exploration_learning/LearningRate/input/japanese_MNIST/'
@@ -13,6 +14,15 @@ def load_japanese_mnist():
     with np.load(folder_path + 'kmnist-train-labels.npz') as data:
         y_train = data['arr_0']
     return X_train, y_train
+
+def load_SVHN():
+    data = sio.loadmat('/Users/romc/Documents/RNN_exploration_learning/LearningRate/input/SVHN/train_32x32.mat')
+    X_train = data['X']
+    y_train = data['y']
+    y_train = np.squeeze(y_train, axis=-1)
+    X_train = X_train.reshape(X_train.shape[-1],X_train.shape[0],X_train.shape[1],X_train.shape[2])
+    return X_train, y_train
+
 
 def sample_dataset():
     datasets = ['MNIST', 'FashionMNIST' , 'JapaneseMNIST', 'CIFAR10']
@@ -72,3 +82,10 @@ def load_natural_images():
 
     return X_train, y_train
 '''
+
+if __name__ == "__main__":
+
+    X_train, y_train = load_SVHN()
+
+    print(X_train.shape)
+    print(y_train.shape)
