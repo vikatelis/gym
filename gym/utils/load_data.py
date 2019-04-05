@@ -87,10 +87,3 @@ def load_natural_images():
 
     return X_train, y_train
 '''
-
-if __name__ == "__main__":
-
-    X_train, y_train = load_SVHN()
-
-    print(X_train.shape)
-    print(min(y_train))

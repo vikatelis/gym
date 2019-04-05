@@ -27,8 +27,7 @@ def cnn_model_fn(input, mode):
   # Dense Layer
   pool2_flat = tf.reshape(pool2, [-1, 7 * 7 * 64])
   dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
-  dropout = tf.layers.dropout(
-      inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+  dropout = tf.layers.dropout(inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
 
   # Logits Layer
   logits = tf.layers.dense(inputs=dropout, units=10)

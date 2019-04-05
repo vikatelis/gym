@@ -2,16 +2,15 @@
 import tensorflow as tf
 # import the inspect_checkpoint library
 from tensorflow.python.tools import inspect_checkpoint as chkp
+print("heloo are you alive?")
 import numpy as np
-import pickle
-from baselines.common.atari_wrappers import make_atari, wrap_deepmind, make_rosi
 import gym
-from gym.utils import branin
+
 
 # init training env
 print("init env")
 #env_type, env_id = get_env_type("LogReg-v0")
-env_type, env_id = get_env_type("SGD-v0")
+env_type, env_id = "optimization", "SGDwithSampledCNN-v0"
 env = gym.make(env_id)
 print(env)
 env.num_envs = 1

@@ -10,7 +10,7 @@ from gym.utils.cnn_standard import cnn_model_fn
 from gym.utils.load_data import sample_dataset
 import numpy as np
 import tensorflow as tf
-from gym.utils import CNNSampler
+from gym.utils import CNNPrototypes
 
 class SGDwithSampledCNN(gym.Env):
     def __init__(self):
@@ -36,6 +36,7 @@ class SGDwithSampledCNN(gym.Env):
         self.num_batches = 1900
         self.batch_window = 130
         self.BATCH_SIZE = 32
+        self.CNNPrototypes = CNNPrototypes.CNNPrototypes()
         # init thread
         self.seed()
 
@@ -126,10 +127,10 @@ class SGDwithSampledCNN(gym.Env):
     def reset(self):
         """ Reset Gym Env """
         print("reset")
-        #tf.keras.backend.clear_session()
+        # tf.keras.backend.clear_session()
         a = self.seed()
         # sample DataSet
-        self.X_train, self.Y_train, type = sample_dataset(type='SVHN')
+        self.X_train, self.Y_train, type = sample_dataset("CIFAR10")
         self.BATCH_SIZE = int(len(self.X_train)/self.num_batches)
         print("Dataset ", str(type), "size", str(len(self.X_train)))
         # preprocess DataSet
@@ -144,18 +145,20 @@ class SGDwithSampledCNN(gym.Env):
             self.input_y = tf.placeholder('float32',shape = (None))
 
         self.learning_rate = tf.placeholder(tf.float32, shape=[])
-            # init network
-        with tf.variable_scope('test_scope'):
-            self.predictions = cnn_model_fn(self.input_x , mode=True)
-            self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = tf.cast(self.input_y,tf.int32),logits = self.predictions))
-            self.train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
 
-        self.params = tf.trainable_variables(scope='test_scope')
+        self.predictions, tag, self.input_x, self.input_y, self.loss, self.train_step, self.learning_rate, self.input_  = \
+            self.CNNPrototypes.get_network(self.input_x, self.input_, self.input_y, self.learning_rate, id=10, nr_classes=10, mode=True)
+        #tf.get_default_graph().get_operations()
+
+        # init network
+        self.params = tf.trainable_variables(scope="cnn_scope_"+tag)
+
         self.sess = tf.Session()
         self.sess.run(tf.initializers.variables(
             self.params,
             name='init'
         ))
+
         # init first loss
         print("doing forward step")
         self.lowest = self.forward_pass()
