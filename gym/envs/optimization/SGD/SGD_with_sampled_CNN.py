@@ -34,7 +34,7 @@ class SGDwithSampledCNN(gym.Env):
         self.state = self.hyper_space.sample()
         self.prev_loss = 0
         self.num_batches = 1900
-        self.batch_window = 130
+        self.batch_window = 4
         self.BATCH_SIZE = 32
         self.CNNPrototypes = CNNPrototypes.CNNPrototypes()
         # init thread
@@ -129,8 +129,9 @@ class SGDwithSampledCNN(gym.Env):
         print("reset")
         # tf.keras.backend.clear_session()
         a = self.seed()
+        no = randint(10) + 1
         # sample DataSet
-        self.X_train, self.Y_train, type = sample_dataset("CIFAR10")
+        self.X_train, self.Y_train, type = sample_dataset()
         self.BATCH_SIZE = int(len(self.X_train)/self.num_batches)
         print("Dataset ", str(type), "size", str(len(self.X_train)))
         # preprocess DataSet
