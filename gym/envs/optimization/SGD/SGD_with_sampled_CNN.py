@@ -130,7 +130,7 @@ class SGDwithSampledCNN(gym.Env):
         # tf.keras.backend.clear_session()
         a = self.seed()
         # sample DataSet
-        self.X_train, self.Y_train, type = sample_dataset("CIFAR10")
+        self.X_train, self.Y_train, type, nr_classes = sample_dataset()
         self.BATCH_SIZE = int(len(self.X_train)/self.num_batches)
         print("Dataset ", str(type), "size", str(len(self.X_train)))
         # preprocess DataSet
@@ -146,8 +146,9 @@ class SGDwithSampledCNN(gym.Env):
 
         self.learning_rate = tf.placeholder(tf.float32, shape=[])
 
+        model_id = np.random.randint(1, 11)
         self.predictions, tag, self.input_x, self.input_y, self.loss, self.train_step, self.learning_rate, self.input_  = \
-            self.CNNPrototypes.get_network(self.input_x, self.input_, self.input_y, self.learning_rate, id=10, nr_classes=10, mode=True)
+            self.CNNPrototypes.get_network(self.input_x, self.input_, self.input_y, self.learning_rate, id=model_id, nr_classes=nr_classes, mode=True)
         #tf.get_default_graph().get_operations()
 
         # init network

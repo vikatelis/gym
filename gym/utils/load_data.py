@@ -35,20 +35,25 @@ def sample_dataset(type=None):
     if type == 'MNIST':
         (X_train, Y_train), (X_test, y_test) = tf.keras.datasets.mnist.load_data()
         X_train = X_train.astype(float) / 255.
+        nr_classes = 10
     elif type == 'FashionMNIST':
         (X_train, Y_train), (X_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
         X_train = X_train.astype(float) / 255.
+        nr_classes = 10
     elif type == 'CIFAR10':
         (X_train, Y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
         X_train = X_train.astype(float) / 255.
         Y_train = np.squeeze(Y_train, axis=-1)
+        nr_classes = 10
     elif type == 'JapaneseMNIST':
         X_train, Y_train = load_japanese_mnist()
         X_train = X_train.astype(float) / 255.
+        nr_classes = 10
     elif type == 'SVHN':
         X_train, Y_train = load_SVHN()
         X_train = X_train.astype(float) / 255.
-    return X_train, Y_train, type
+        nr_classes = 10
+    return X_train, Y_train, type, nr_classes
 
 '''
 def load_natural_images():
