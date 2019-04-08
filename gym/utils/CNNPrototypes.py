@@ -4,13 +4,14 @@ from tensorflow import keras
 
 
 class CNNPrototypes():
-    def __init__(self):
+    def __init__(self, thread_id):
         self.networks_cache = {}
+        self.thread_id = thread_id
+        print(thread_id)
 
     def build_net(self,input_ph, id, nr_classes, mode,tag):
         # build networks
         if id == 1:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=32,
@@ -34,7 +35,6 @@ class CNNPrototypes():
                 logits = tf.layers.dense(inputs=dropout, units=nr_classes)
 
         elif id == 2:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=16,
@@ -59,7 +59,6 @@ class CNNPrototypes():
 
 
         elif id == 3:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=32,
@@ -76,7 +75,6 @@ class CNNPrototypes():
 
 
         elif id == 4:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=32,
@@ -108,7 +106,6 @@ class CNNPrototypes():
 
 
         elif id == 5:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=32,
@@ -133,7 +130,6 @@ class CNNPrototypes():
 
 
         elif id == 6:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=32,
@@ -148,18 +144,7 @@ class CNNPrototypes():
                 dropout = tf.layers.dropout(inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
                 logits = tf.layers.dense(inputs=dropout, units=nr_classes)
 
-
         elif id == 7:
-            with tf.variable_scope("cnn_scope_"+tag):
-
-                input_flat = tf.reshape(input_ph, [-1, 28*28])
-                dense = tf.layers.dense(inputs=input_flat, units=1024, activation=tf.nn.relu)
-                dropout = tf.layers.dropout(inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
-                logits = tf.layers.dense(inputs=dropout, units=nr_classes)
-
-
-        elif id == 8:
-            with tf.variable_scope("cnn_scope_"+tag):
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=32,
@@ -182,8 +167,7 @@ class CNNPrototypes():
                 logits = tf.layers.dense(inputs=dense, units=nr_classes)
 
 
-        elif id == 9:
-            with tf.variable_scope("cnn_scope_"+tag):
+        elif id == 8:
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=16,
@@ -205,8 +189,7 @@ class CNNPrototypes():
                 dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
                 logits = tf.layers.dense(inputs=dense, units=nr_classes)
 
-        elif id == 10:
-            with tf.variable_scope("cnn_scope_"+tag):
+        elif id == 9:
                 conv1 = tf.layers.conv2d(
                     inputs=input_ph,
                     filters=64,
@@ -230,26 +213,13 @@ class CNNPrototypes():
 
         return logits
 
-
     def get_network(self,input_ph, input_ph_n, gt_ph,learn_rate, id, nr_classes, mode):
 
-        tag = str(id)+"_"+str(nr_classes)+"_"+''.join([str(x)+"_" for x in input_ph.shape if not str(x) == "?"])
-        if tag not in self.networks_cache.keys():
-            self.networks_cache[tag] = self.build_net(input_ph,id,nr_classes,mode,tag)
-            self.networks_cache[tag+"ph"] = input_ph
-            self.networks_cache[tag + "ph_n"] = input_ph_n
-            self.networks_cache[tag + "gt"] = gt_ph
-            self.networks_cache[tag + "lr"] = learn_rate
-            with tf.variable_scope("cnn_scope_" + tag):
-                self.networks_cache[tag + "loss"] = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.cast(gt_ph, tf.int32), logits=self.networks_cache[tag]))
-                self.networks_cache[tag + "train_step"] = tf.train.GradientDescentOptimizer(self.networks_cache[tag + "lr"]).minimize(self.networks_cache[tag + "loss"])
-
-
-        return self.networks_cache[tag], tag, self.networks_cache[tag+"ph"], self.networks_cache[tag + "gt"], \
-               self.networks_cache[tag + "loss"], self.networks_cache[tag + "train_step"], self.networks_cache[tag + "lr"],  self.networks_cache[tag + "ph_n"]
+        tag = "test"
+        return self.build_net(input_ph,id,nr_classes,mode,tag)
 
     def nr_networks(self):
-        return 10
+        return 9
 
 
 
@@ -311,3 +281,13 @@ if __name__ == "__main__":
             saved_losses.append(loss_fetch)
             print("loss at iteration "+ str(iter)+": "+str(loss_fetch))
 
+    '''
+    elif id == 7:
+        with tf.variable_scope("cnn_scope_"+tag):
+
+            input_flat = tf.reshape(input_ph, [-1, 28*28])
+            dense = tf.layers.dense(inputs=input_flat, units=1024, activation=tf.nn.relu)
+            dropout = tf.layers.dropout(inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+            logits = tf.layers.dense(inputs=dropout, units=nr_classes)
+
+    '''
