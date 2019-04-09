@@ -68,7 +68,7 @@ class SGDwithSampledCNN(gym.Env):
         else:
             reward_5 = 0
         done = False
-        loss, done = self.sgd_step(action)
+        loss, done, cs_state = self.sgd_step(action)
         add_factor = self.lowest - loss
         reward_1 = np.tanh(float((self.prev_loss - loss)))
         reward_2 = np.tanh(np.linalg.norm(action))
@@ -82,7 +82,7 @@ class SGDwithSampledCNN(gym.Env):
         if loss < self.lowest:
             self.lowest = loss
 
-        return self.obs, reward, done, {'loss': loss}
+        return self.obs, reward, done, {'loss': loss, 'state': cs_state}
 
     def sgd_step(self,action):
         """ Step in GP function """
@@ -94,7 +94,7 @@ class SGDwithSampledCNN(gym.Env):
         ## state description update
         f_, done = self.sgd_eval(cs_state);
         self.get_observation(f_, action)
-        return f_, done
+        return f_, done, cs_state
 
     def sgd_eval(self, cs_state):
         """ Do one gradient descent step with cs state"""
@@ -122,11 +122,15 @@ class SGDwithSampledCNN(gym.Env):
 
         return batch_loss, done
 
-    def forward_pass(self):
+    def forward_pass(self, DataSetFraction=None):
         """ Evaluate current loss"""
-        idx = np.random.randint(self.X_train.shape[0], size=self.batch_window*self.BATCH_SIZE)
-        X_b = self.X_train[idx]
-        Y_b = self.Y_train[idx]
+        if DataSetFraction == None:
+            idx = np.random.randint(self.X_train.shape[0], size=self.batch_window*self.BATCH_SIZE)
+            X_b = self.X_train[idx]
+            Y_b = self.Y_train[idx]
+        else:
+            X_b = self.X_train
+            Y_b = self.Y_train
         # sample subset of size Batch_Size*batch_window
         #with self.tf_session.as_default(), self.tf_session.graph.as_default() as sess:
 
@@ -153,7 +157,7 @@ class SGDwithSampledCNN(gym.Env):
         self.tf_session.close()
         a = self.seed()
         # sample DataSet
-        self.X_train, self.Y_train, type, nr_classes = sample_dataset()
+        self.X_train, self.Y_train, type, nr_classes = sample_dataset('MNIST')
         self.BATCH_SIZE = int(len(self.X_train)/self.num_batches)
         # preprocess DataSet
         tf_graph = tf.Graph()
@@ -173,7 +177,7 @@ class SGDwithSampledCNN(gym.Env):
 
             self.learning_rate = tf.placeholder(tf.float32, shape=[])
 
-            model_id = np.random.randint(1, 10)
+            model_id = 8 #np.random.randint(1, 10)
             self.predictions = self.CNNPrototypes.get_network(self.input_x, self.input_, self.input_y, self.learning_rate, id=model_id, nr_classes=nr_classes, mode=True)
             self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = tf.cast(self.input_y,tf.int32),logits = self.predictions))
             self.train_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
